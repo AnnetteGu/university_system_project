@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.annette.spring.courses_system.project.entity.Student;
 import com.annette.spring.courses_system.project.service.StudentService;
 
 @RestController
@@ -38,14 +37,14 @@ public class StudentController {
     }
 
     @PostMapping("/students")
-    public Student saveStudent(@RequestBody String data) {
+    public Map<String, Object> saveStudent(@RequestBody String data) {
 
         return studentService.saveStudent(data);
         
     }
 
     @PatchMapping("/students")
-    public Student updateStudent(@RequestBody String data) {
+    public Map<String, Object> updateStudent(@RequestBody String data) {
 
         return studentService.updateStudent(data);
 
@@ -53,6 +52,8 @@ public class StudentController {
 
     @DeleteMapping("/students/{id}")
     public String deleteStudent(@PathVariable int id) {
+
+        studentService.deleteStudent(id);
 
         return "Студент с id = " + id + " удалён";
 

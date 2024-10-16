@@ -20,19 +20,24 @@ public class StudentServiceImpl implements StudentService {
     private StudentRepository studentRepository;
 
     @Override
+    // получение всех студентов
     public List<Map<String, Object>> getAllStudents() {
 
+        // получаем список всех студентов
         List<Student> studentList = studentRepository.findAll();
+        // создаём список для вывода данных
         List<Map<String, Object>> resultList = new ArrayList<>();
+        // словарь для наполнения списка
         Map<String, Object> resultMap = new LinkedHashMap<>();
 
+        // идём по списку студентов
         for (Student student : studentList) {
-            resultMap.put("id", student.getId());
-            resultMap.put("name", student.getName());
-            resultMap.put("surname", student.getSurname());
 
+            // вносим необходимые данные о студенте
+            resultMap = fillMap(student);
+            // добавляем словарь в список
             resultList.add(resultMap);
-
+            // делаем новый пустой словарь (делается так, чтобы ссылочно не повредить данные)
             resultMap = new LinkedHashMap<>();
         }
 
@@ -41,59 +46,62 @@ public class StudentServiceImpl implements StudentService {
     }
 
     @Override
+    // получение одного студента
     public Map<String, Object> getStudent(int id) {
 
+        //  получаем все данные о студенте
         Student student = studentRepository.findById(id).get();
+        // создаем словарь для вывода данных
         Map<String, Object> resultMap = new LinkedHashMap<>();
-
-        resultMap.put("id", student.getId());
-        resultMap.put("name", student.getName());
-        resultMap.put("surname", student.getSurname());
+        // заполняем словарь данными
+        resultMap = fillMap(student);
 
         return resultMap;
         
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Student saveStudent(String data) {
+    // сохранение студента
+    public Map<String, Object> saveStudent(String data) {
         
-        ObjectMapper objectMapper = new ObjectMapper();
+        // парсим пришедший json
+        Map<String, Object> studentMap = jsonParse(data);
         Map<String, Object> resultMap = new LinkedHashMap<>();
 
-        try {
-            resultMap = objectMapper.readValue(data, LinkedHashMap.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
-
+        // создаём студента
         Student student = new Student();
 
-        student.setName((String) resultMap.get("name"));
-        student.setSurname((String) resultMap.get("surname"));
+        // даём ему имя и фамилию, переданные в json
+        student.setName((String) studentMap.get("name"));
+        student.setSurname((String) studentMap.get("surname"));
 
-        return studentRepository.save(student);
+        // сохраняем студента
+        studentRepository.save(student);
+
+        // заполняем данные о нём в словарь
+        resultMap = fillMap(student);
+
+        return resultMap;
 
     }
 
-    @SuppressWarnings("unchecked")
     @Override
-    public Student updateStudent(String data) {
-        
-        ObjectMapper objectMapper = new ObjectMapper();
+    // обновление студента
+    public Map<String, Object> updateStudent(String data) {
+
+        // парсим пришедший json
+        Map<String, Object> studentMap = jsonParse(data);
         Map<String, Object> resultMap = new LinkedHashMap<>();
 
-        try {
-            resultMap = objectMapper.readValue(data, LinkedHashMap.class);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace();
-        }
+        // получаем id студента
+        int id = (Integer) studentMap.get("id");
 
-        int id = (Integer) resultMap.get("id");
-
+        // получаем данные о студенте
         Student student = studentRepository.findById(id).get();
 
-        for (Map.Entry<String, Object> entry : resultMap.entrySet()) {
+        // идём по словарю с информацией из json
+        for (Map.Entry<String, Object> entry : studentMap.entrySet()) {
+            // обновляем поля, которые нам попадаются
             switch (entry.getKey()) {
                 case "name":
                     student.setName((String) entry.getValue());
@@ -106,7 +114,12 @@ public class StudentServiceImpl implements StudentService {
             }
         }
 
-        return studentRepository.save(student);
+        // заполняем словарь для вывода
+        resultMap = fillMap(student);
+        // сохраняем изменения в базу
+        studentRepository.save(student);
+
+        return resultMap;
 
     }
 
@@ -114,6 +127,38 @@ public class StudentServiceImpl implements StudentService {
     public void deleteStudent(int id) {
         
         studentRepository.deleteById(id);
+
+    }
+
+    // метод для заполнения словаря вывода
+    private Map<String, Object> fillMap(Student student) {
+
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        map.put("id", student.getId());
+        map.put("name", student.getName());
+        map.put("surname", student.getSurname());
+
+        return map;
+
+    }
+
+    @SuppressWarnings("unchecked")
+    // метод парсинга json в словарь
+    private Map<String, Object> jsonParse(String json) {
+
+        // ключевой объект для реализации парсинга
+        ObjectMapper objectMapper = new ObjectMapper();
+        Map<String, Object> map = new LinkedHashMap<>();
+
+        try {
+            // передаём строку с json и указываем, какой класс хотим видеть на выходе
+            map = objectMapper.readValue(json, LinkedHashMap.class);
+        } catch (JsonProcessingException e) {
+            e.printStackTrace();
+        }
+
+        return map;
 
     }
 

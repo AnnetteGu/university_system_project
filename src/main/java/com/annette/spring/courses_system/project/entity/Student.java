@@ -13,7 +13,6 @@ import jakarta.persistence.Table;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.ToString;
 
 import java.util.List;
 
@@ -22,7 +21,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@ToString
 public class Student {
 
     @Id
@@ -35,6 +33,9 @@ public class Student {
 
     @Column(name = "surname")
     private String surname;
+
+    @Column(name = "time_zone")
+    private String timeZone;
 
     @ManyToMany(cascade = {
         CascadeType.DETACH,
@@ -49,10 +50,11 @@ public class Student {
     )
     List<Course> studentCourses;
 
-    public Student(int id, String name, String surname) {
+    public Student(int id, String name, String surname, String timeZone) {
         this.id = id;
         this.name = name;
         this.surname = surname;
+        this.timeZone = timeZone;
     }
 
 }
